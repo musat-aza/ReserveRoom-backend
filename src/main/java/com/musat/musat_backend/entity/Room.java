@@ -10,7 +10,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-
 public class Room {
 
     @Id
@@ -21,16 +20,10 @@ public class Room {
     @Column(name = "회의실 이름", length = 100, nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "회의실 종류", length = 20, nullable = false)
-    private String type; // "스매시룸" 또는 "큐브"
+    private RoomType type; // Enum → 스매시룸, 큐브
 
     @Column(name = "수용 인원", nullable = false)
     private Integer capacity;
-
-
-    public Room(String name, String type, Integer capacity) {
-        this.name = name;
-        this.type = type;
-        this.capacity = capacity;
-    }
 }

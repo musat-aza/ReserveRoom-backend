@@ -3,6 +3,7 @@ package com.musat.musat_backend.service;
 import com.musat.musat_backend.dto.request.RoomDto;
 import com.musat.musat_backend.dto.response.RoomResponse;
 import com.musat.musat_backend.entity.Room;
+import com.musat.musat_backend.entity.RoomType;
 import com.musat.musat_backend.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,14 +17,21 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
-    // 모든 회의실 조회
+    // 전체 회의실 조회
     public List<RoomResponse> getAllRooms() {
         return roomRepository.findAll().stream()
                 .map(RoomResponse::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    // 특정 회의실 조회
+    // 특정 종류의 회의실 조회 (스매시룸 / 큐브)
+    public List<RoomResponse> getRoomsByType(RoomType type) {
+        return roomRepository.findByType(type).stream()
+                .map(RoomResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // 회의실 단건 조회
     public RoomResponse getRoomById(Integer id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("회의실을 찾을 수 없습니다. ID: " + id));
