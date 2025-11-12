@@ -1,6 +1,7 @@
 package com.musat.musat_backend.dto.response;
 
 import com.musat.musat_backend.entity.Room;
+import com.musat.musat_backend.entity.RoomType;
 import lombok.*;
 
 @Getter
@@ -11,7 +12,7 @@ import lombok.*;
 public class RoomResponse {
     private Integer id;
     private String name;
-    private String type;
+    private RoomType type;
     private Integer capacity;
 
     public static RoomResponse fromEntity(Room room) {
