@@ -7,7 +7,7 @@ import lombok.*;
 @Table(name = "회의실")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Room {

@@ -18,6 +18,6 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     @Query("SELECT DISTINCT r.id FROM Reservation res " +
             "JOIN res.room r " +
             "WHERE (:now BETWEEN res.startTime AND res.endTime) " +
-            "AND r.roomtype = :type")
+            "AND r.type = :type")
     List<Integer> findActiveRoomIdsByType(@Param("now") LocalDateTime now, @Param("type") RoomType type);
 }

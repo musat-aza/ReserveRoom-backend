@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "사용자")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {

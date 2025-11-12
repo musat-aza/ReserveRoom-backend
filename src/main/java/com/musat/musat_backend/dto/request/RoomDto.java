@@ -8,7 +8,7 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor()
 @AllArgsConstructor
 @Builder
 public class RoomDto {

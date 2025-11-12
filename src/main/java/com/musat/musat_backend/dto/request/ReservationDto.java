@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor()
 @AllArgsConstructor
 @Builder
 public class ReservationDto {
