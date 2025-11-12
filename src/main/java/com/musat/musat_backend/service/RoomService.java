@@ -7,12 +7,16 @@ import com.musat.musat_backend.entity.RoomType;
 import com.musat.musat_backend.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RoomService {
 
     private final RoomRepository roomRepository;
@@ -63,5 +67,20 @@ public class RoomService {
             throw new IllegalArgumentException("존재하지 않는 회의실입니다. ID: " + id);
         }
         roomRepository.deleteById(id);
+    }
+
+    // [수정됨] 특정 타입의 사용 중인 방 ID 목록 반환
+    public List<Integer> getActiveRoomIds(String typeStr) {
+        // 1. 문자열(cube) -> Enum(CUBE) 변환 (대소문자 처리)
+        // 예: "cube" -> "CUBE"로 변환되어 RoomType.CUBE를 찾음
+        RoomType type;
+        try {
+            type = RoomType.valueOf(typeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("존재하지 않는 회의실 종류입니다: " + typeStr);
+        }
+
+        // 2. 현재 시간 기준 조회
+        return roomRepository.findActiveRoomIdsByType(LocalDateTime.now(), type);
     }
 }

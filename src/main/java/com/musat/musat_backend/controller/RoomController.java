@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rooms")
 @RequiredArgsConstructor
+@RequestMapping("/api/rooms")
 public class RoomController {
 
     private final RoomService roomService;
@@ -58,5 +58,13 @@ public class RoomController {
     public ResponseEntity<Void> deleteRoom(@PathVariable Integer id) {
         roomService.deleteRoom(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // 요청 예시: GET /api/rooms/cube/active
+    // 요청 예시: GET /api/rooms/smash/active
+    @GetMapping("/{type}/active")
+    public ResponseEntity<List<Integer>> getActiveRoomIds(@PathVariable String type) {
+        List<Integer> activeIds = roomService.getActiveRoomIds(type);
+        return ResponseEntity.ok(activeIds);
     }
 }
