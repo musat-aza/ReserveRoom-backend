@@ -13,14 +13,14 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class) // createdAt 자동화를 위해 추가
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "posts")
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
-    private Integer id; // ID 타입 통일 (Integer)
+    private Integer id;
 
     @Column(nullable = false, length = 150)
     private String title;
@@ -28,41 +28,42 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @CreatedDate // 엔티티 생성 시 시간 자동 저장
+    @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // ERD에 정의된 roomtype (RoomType Enum 재활용)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RoomType roomtype;
+    private RoomType roomtype; // CUBE or SMASH
 
-    @Column(length = 2251) // ERD의 photolo -> photoUrl로 변경
-    private String photoUrl;
-
-    // 작성자 (User 엔티티와 N:1 관계)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
+    // [추가됨] 분실/발견/기타 카테고리
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PostCategory postCategory;
 
+    @Column(length = 2251)
+    private String photoUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Builder
-    public Post(String title, String content, RoomType roomtype, String photoUrl, User user) {
+    public Post(String title, String content, RoomType roomtype, PostCategory postCategory, String photoUrl, User user) {
         this.title = title;
         this.content = content;
         this.roomtype = roomtype;
+        this.postCategory = postCategory; // [추가됨]
         this.photoUrl = photoUrl;
         this.user = user;
     }
 
-    // 수정을 위한 update 메소드
-    public void update(String title, String content, RoomType roomtype, String photoUrl) {
+    // [수정됨] update 메소드에 postCategory 추가
+    public void update(String title, String content, RoomType roomtype, PostCategory postCategory, String photoUrl) {
         this.title = title;
         this.content = content;
         this.roomtype = roomtype;
+        this.postCategory = postCategory; // [추가됨]
         this.photoUrl = photoUrl;
     }
 }
