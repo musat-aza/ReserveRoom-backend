@@ -55,4 +55,11 @@ public class Reservation {
         this.user = user;
         this.room = room;
     }
+    public void update(User user, Room room, LocalDateTime startTime, LocalDateTime endTime, ReservationPurpose purpose) {
+        this.user = user;
+        this.room = room;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.purpose = purpose;
+    }
 }
