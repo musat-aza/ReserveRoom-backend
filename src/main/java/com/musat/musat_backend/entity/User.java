@@ -19,6 +19,9 @@ public class User {
     @Column(name = "사용자 id")
     private Integer id;
 
+    @Column(nullable = false, unique = true, length = 20, name = "사용자 학번")
+    private String studentId;
+
     @Column(name = "사용자 이름", length = 50, nullable = false)
     private String name;
 
@@ -34,5 +37,13 @@ public class User {
     @PrePersist
     public void prePersist() {
         this.joinedAt = LocalDateTime.now();
+    }
+
+    @Builder
+    public User(String username, String password, String email, String studentId) { // 생성자에도 추가
+        this.name = name;
+        this.password = password;
+        this.email = email;
+        this.studentId = studentId;
     }
 }

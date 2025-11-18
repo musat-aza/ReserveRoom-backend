@@ -22,7 +22,7 @@ public class ReservationDto {
     private LocalDateTime endTime;
     private ReservationPurpose purpose;
 
-    private List<Integer> attendeeIds;
+    private List<Integer> attendeeStudentIds;
 
     public Reservation toEntity(User user, Room room) {
         return Reservation.builder()

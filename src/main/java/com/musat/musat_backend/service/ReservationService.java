@@ -25,18 +25,30 @@ public class ReservationService {
     @Transactional
     public ReservationResponse createReservation(ReservationDto request) {
 
+        // 1. 예약자(User) 조회 (변수 booker 선언)
         User booker = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + request.getUserId()));
 
+        // 2. 회의실(Room) 조회 (변수 room 선언)
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("회의실을 찾을 수 없습니다. id=" + request.getRoomId()));
 
+        // 3. 예약(Reservation) 생성 및 저장
         Reservation reservation = request.toEntity(booker, room);
-
         reservationRepository.save(reservation);
 
-        if (request.getAttendeeIds() != null) {
-            List<User> attendees = userRepository.findAllById(request.getAttendeeIds());
+        // 4. 동반자(Attendee) 처리 - 학번 리스트 사용
+        if (request.getAttendeeStudentIds() != null && !request.getAttendeeStudentIds().isEmpty()) {
+
+            // 학번들로 유저 목록 한 번에 조회
+            List<User> attendees = userRepository.findAllByStudentIdIn(request.getAttendeeStudentIds());
+
+            // (선택) 요청한 학번 수와 찾은 유저 수가 다르면 예외 처리 (없는 학번 입력 시)
+            if (attendees.size() != request.getAttendeeStudentIds().size()) {
+                throw new IllegalArgumentException("존재하지 않는 학번이 포함되어 있습니다.");
+            }
+
+            // 동반자 저장
             for (User attendeeUser : attendees) {
                 Attendee attendee = Attendee.builder()
                         .reservation(reservation)
@@ -62,22 +74,22 @@ public class ReservationService {
     }
 
     @Transactional
-    public ReservationResponse updateReservation(Integer reservationId, ReservationDto requestDto) {
+    public ReservationResponse updateReservation(Integer reservationId, ReservationDto request) {
         // 1. 수정할 예약 조회 (이때 기존 동반자 목록(attendees)도 같이 로드됨)
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다. id=" + reservationId));
 
         // 2. 연관 엔티티 (User, Room) 다시 조회
-        User booker = userRepository.findById(requestDto.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + requestDto.getUserId()));
+        User booker = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + request.getUserId()));
 
-        Room room = roomRepository.findById(requestDto.getRoomId())
-                .orElseThrow(() -> new IllegalArgumentException("회의실을 찾을 수 없습니다. id=" + requestDto.getRoomId()));
+        Room room = roomRepository.findById(request.getRoomId())
+                .orElseThrow(() -> new IllegalArgumentException("회의실을 찾을 수 없습니다. id=" + request.getRoomId()));
 
         // --- 3. 동반자 목록 '스마트' 업데이트 (★ 여기가 핵심 ★) ---
 
         // (A) 요청으로 들어온 새 동반자 ID 목록 (예: [2, 4])
-        List<Integer> newAttendeeIds = requestDto.getAttendeeIds();
+        List<Integer> newAttendeeIds = request.getAttendeeStudentIds();
 
         // (B) 기존 동반자 목록 (예: [1, 2])
         List<Attendee> currentAttendees = reservation.getAttendees();
@@ -112,9 +124,9 @@ public class ReservationService {
         reservation.update(
                 booker,
                 room,
-                requestDto.getStartTime(),
-                requestDto.getEndTime(),
-                requestDto.getPurpose()
+                request.getStartTime(),
+                request.getEndTime(),
+                request.getPurpose()
         );
 
         return new ReservationResponse(reservation);
