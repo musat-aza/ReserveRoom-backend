@@ -17,7 +17,7 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     // [수정됨] 조건에 맞는 '방의 ID'만(List<Integer>) 조회합니다.
     @Query("SELECT DISTINCT r.id FROM Reservation res " +
             "JOIN res.room r " +
-            "WHERE (:now BETWEEN res.startTime AND res.endTime) " +
+            "WHERE (res.startTime <= :now AND res.endTime > :now) " +
             "AND r.type = :type")
     List<Integer> findActiveRoomIdsByType(@Param("now") LocalDateTime now, @Param("type") RoomType type);
 }

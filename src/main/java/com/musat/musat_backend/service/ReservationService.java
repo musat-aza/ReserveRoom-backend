@@ -62,7 +62,7 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse updateReservation(Integer reservationId, ReservationDto requestDto) {
-        // 1. 수정할 예약 조회
+        // 1. 수정할 예약 조회 (이때 기존 동반자 목록(attendees)도 같이 로드됨)
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다. id=" + reservationId));
 
@@ -73,22 +73,44 @@ public class ReservationService {
         Room room = roomRepository.findById(requestDto.getRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("회의실을 찾을 수 없습니다. id=" + requestDto.getRoomId()));
 
-        // 3. 기존 동반자 목록(Attendees) 삭제
-        reservation.getAttendees().clear(); // orphanRemoval=true에 의해 DB에서 삭제됨
+        // --- 3. 동반자 목록 '스마트' 업데이트 (★ 여기가 핵심 ★) ---
 
-        // 4. 새로운 동반자 목록 추가
-        if (requestDto.getAttendeeIds() != null) {
-            List<User> attendeeUsers = userRepository.findAllById(requestDto.getAttendeeIds());
-            for (User attendeeUser : attendeeUsers) {
+        // (A) 요청으로 들어온 새 동반자 ID 목록 (예: [2, 4])
+        List<Integer> newAttendeeIds = requestDto.getAttendeeIds();
+
+        // (B) 기존 동반자 목록 (예: [1, 2])
+        List<Attendee> currentAttendees = reservation.getAttendees();
+
+        // (C) 삭제할 동반자 찾기: (B)에는 있지만 (A)에는 없는 것 (예: [1])
+        // currentAttendees 리스트에서 직접 삭제 -> orphanRemoval=true가 DB 삭제를 트리거
+        currentAttendees.removeIf(attendee ->
+                !newAttendeeIds.contains(attendee.getUser().getId())
+        );
+
+        // (D) 추가할 동반자 찾기: (A)에는 있지만 (B)에는 없는 것 (예: [4])
+        // 현재 DB에 저장된 동반자 ID 목록 (예: [2])
+        List<Integer> currentAttendeeIds = currentAttendees.stream()
+                .map(attendee -> attendee.getUser().getId())
+                .collect(Collectors.toList());
+
+        for (Integer newId : newAttendeeIds) {
+            if (!currentAttendeeIds.contains(newId)) {
+                // 추가해야 할 ID
+                User attendeeUser = userRepository.findById(newId)
+                        .orElseThrow(() -> new IllegalArgumentException("동반자 사용자를 찾을 수 없습니다. id=" + newId));
+
                 Attendee newAttendee = Attendee.builder()
                         .reservation(reservation)
                         .user(attendeeUser)
                         .build();
-                reservation.getAttendees().add(newAttendee); // Cascade로 자동 저장
+
+                currentAttendees.add(newAttendee); // -> cascade=ALL이 DB 저장을 트리거
             }
         }
 
-        // 5. 예약 정보 업데이트 [수정됨]
+        // ----------------------------------------------------
+
+        // 4. 예약 정보 업데이트
         reservation.update(
                 booker,
                 room,
@@ -97,6 +119,7 @@ public class ReservationService {
                 requestDto.getPurpose()
         );
 
+        // 5. Transaction이 종료될 때 JPA가 (C)와 (D)의 변경사항을 DB에 자동 반영
         return new ReservationResponse(reservation);
     }
 
