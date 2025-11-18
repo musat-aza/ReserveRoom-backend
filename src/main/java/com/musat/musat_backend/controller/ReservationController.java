@@ -2,6 +2,7 @@ package com.musat.musat_backend.controller;
 
 import com.musat.musat_backend.dto.request.ReservationDto;
 import com.musat.musat_backend.dto.response.ReservationResponse;
+import com.musat.musat_backend.dto.response.MyReservationResponse;
 import com.musat.musat_backend.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,10 +44,15 @@ public class ReservationController {
         return ResponseEntity.ok(response);
     }
 
-    // [추가] 3. 예약 삭제 API
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Integer id) {
         reservationService.deleteReservation(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<MyReservationResponse> getMyReservations(@PathVariable Integer userId) {
+        MyReservationResponse response = reservationService.getMyReservations(userId);
+        return ResponseEntity.ok(response);
     }
 }
